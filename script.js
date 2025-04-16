@@ -5,13 +5,17 @@ document.getElementById('searchButton').addEventListener('click', function() {
   
     if (!query) return;
   
+    const spinner = document.getElementById('loadingSpinner');
+    const resultsDiv = document.getElementById('results');
+  
+    spinner.style.display = 'block';        // Show spinner
+    resultsDiv.innerHTML = '';             
+  
     fetch(searchUrl)
       .then(response => response.json())
       .then(data => {
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = ''; // Clear previous results
+        spinner.style.display = 'none';    // Hide spinner
   
-        // No search results
         if (data.query.search.length === 0) {
           resultsDiv.innerHTML = `
             <div class="col">
@@ -25,7 +29,6 @@ document.getElementById('searchButton').addEventListener('click', function() {
           return;
         }
   
-        // If results exist, render them
         data.query.search.forEach(item => {
           const resultLink = `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title)}`;
           const resultHtml = `
@@ -41,7 +44,6 @@ document.getElementById('searchButton').addEventListener('click', function() {
           resultsDiv.innerHTML += resultHtml;
         });
   
-        // Try to fetch background image from the first result
         const firstTitle = data.query.search[0].title;
         const imageUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=pageimages&titles=${encodeURIComponent(firstTitle)}&pithumbsize=1000&origin=*`;
   
@@ -53,7 +55,6 @@ document.getElementById('searchButton').addEventListener('click', function() {
             if (page.thumbnail && page.thumbnail.source) {
               document.body.style.backgroundImage = `url('${page.thumbnail.source}')`;
             } else {
-              // fallback if no image
               document.body.style.backgroundImage = "url('https://i.ytimg.com/vi/7RIEfMqhBR4/maxresdefault.jpg')";
             }
           })
@@ -63,6 +64,7 @@ document.getElementById('searchButton').addEventListener('click', function() {
           });
       })
       .catch(err => {
+        spinner.style.display = 'none'; // Hide spinner if error
         console.error('Search error:', err);
       });
   });
